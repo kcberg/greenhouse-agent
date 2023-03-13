@@ -1,0 +1,22 @@
+listen_port: 6000
+dht_board_pin: 16
+dht_configs:
+  - gpio_pin: 17
+    name: outside
+  - gpio_pin: 27
+    name: inside_lower
+  - gpio_pin: 22
+    name: inside_upper
+    humidity_offset: -10.0
+
+switch_devices:
+  - gpio_pin: 18
+    name: fan
+  - gpio_pin: 23
+    name: heater
+  - gpio_pin: 25
+    name: case_fan
+  - gpio_pin: 24
+    name: misc_ac
+  - gpio_pin: 12
+    name: water_solenoid

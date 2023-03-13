@@ -1,0 +1,62 @@
+env_files = [
+    { path = "./.env", profile = "development" },
+    { path = "./.env.prod", profile = "production" }
+]
+[tasks.build]
+command = "cargo"
+args = ["build"]
+
+[tasks.install_ui]
+cwd = "./ui"
+command = "npm"
+args = ["install"]
+
+[tasks.build_ui]
+cwd = "./ui"
+command = "npm"
+args = ["run", "build"]
+dependencies = ["install_ui"]
+
+[tasks.start_ui]
+cwd = "./ui"
+command = "npm"
+args = ["run", "start"]
+dependencies = ["install_ui"]
+
+[tasks.build_with_ui]
+command = "cargo"
+args = ["build"]
+dependencies = ["build_ui"]
+
+[tasks.build_armv7]
+command = "cross"
+args = ["build", "--release", "--target", "armv7-unknown-linux-gnueabihf"]
+
+[tasks.build_armv7_with_ui]
+dependencies = ["build_ui", "build_armv7"]
+
+[tasks.build_aarch64]
+command = "cross"
+args = ["build", "--release", "--target", "aarch64-unknown-linux-gnu"]
+
+[tasks.build_aarch64_with_ui]
+dependencies = ["build_ui", "build_aarch64"]
+
+[tasks.run]
+command = "cargo"
+args = ["run"]
+dependencies = ["build_ui"]
+
+[tasks.run_dev_ui]
+run_task = { name = ["run", "start_ui"], fork = true, parallel = true }
+
+[tasks.cleanui]
+cwd = "./ui"
+command = "rm"
+args = ["-rf", "./node_modules", "./dist"]
+
+[tasks.clean]
+command = "cargo"
+args = ["clean"]
+dependencies = ["cleanui"]
+

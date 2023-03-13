@@ -1,0 +1,58 @@
+listen_port: 8000
+listen_host: 0.0.0.0
+# disabled to dev locally when not on a raspberrypi
+# dht_board_pin: 16
+dht_configs:
+  - gpio_pin: 17
+    name: outside
+  - gpio_pin: 27
+    name: inside_lower
+  - gpio_pin: 22
+    name: inside_upper
+    # humidity_offset: -10.0
+
+switch_devices:
+  - gpio_pin: 18
+    name: fan
+    auto: true
+  - gpio_pin: 23
+    name: heater
+    auto: true
+  - gpio_pin: 25
+    name: case_fan
+    auto: true
+  - gpio_pin: 24
+    name: misc_ac
+  - gpio_pin: 12
+    name: water_solenoid
+
+cors_origins:
+  - 'http://localhost:8080'
+  - 'http://localhost:8000'
+  -
+# Experiments below
+monitor_sources:
+  - name: inside_average_f
+    avg:
+      type: dht
+      metric: temp_f
+      names: [ inside_upper, inside_lower ]
+
+monitors:
+  - name: is_hot
+    source: inside_average_f
+    switch_devices:
+      - fan
+      - case_fan
+    threshold:
+      direction: upper
+      upper: 85.0
+      lower: 80.0
+  - name: is_cold
+    source: inside_average_f
+    switch_devices:
+      - heater
+    threshold:
+      direction: lower
+      upper: 55.0
+      lower: 40.0
