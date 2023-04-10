@@ -13,7 +13,8 @@ module.exports = (env) => {
         mode: 'development',
         entry: './src/js/main.js',
         output: {
-            filename: "main.js",
+            // filename: "main.js",
+            filename: '[name].[contenthash].js',
             path: path.resolve(__dirname, "dist"),
         },
         plugins: [

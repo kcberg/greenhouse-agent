@@ -41,13 +41,13 @@ const SwitchRow = ({switch_state, onUpdatePinState, onUpdatePinOverride}) => {
     }
     return (
         <div className="row border" key={switch_state.pin_num} id={`switch_${switch_state.pin_num}`}>
-            <div className="col-3 d-flex align-items-center">
+            <div className="col-2 d-flex align-items-center">
                 {overrideBtn}
             </div>
             <div className="col-8 d-flex align-items-center">
                 <div className="form-check form-switch text-success form-control-lg">
                     <label className="form-check-label" htmlFor="switch_input"
-                           id="col_name">{switch_state.name} ({switch_state.pin_num})</label>
+                           id="col_name">{switch_state.name}</label>
                     <input className="form-check-input" type="checkbox" id={`switch_input_${switch_state.pin_num}`}
                            checked={checked}
                            disabled={switch_state.is_auto && !switch_state.override_auto}
@@ -55,7 +55,8 @@ const SwitchRow = ({switch_state, onUpdatePinState, onUpdatePinOverride}) => {
                 </div>
             </div>
             {/*<div class="col-5 d-flex align-items-center" id="col_name">name</div>*/}
-            <div className="col"></div>
+            <div className="col-2 d-flex align-items-center">{switch_state.pin_num}</div>
+            {/*<div className="col"></div>*/}
         </div>
     );
 }
@@ -71,8 +72,50 @@ const SwitchesGrid = ({switches, onUpdatePinState, onUpdatePinOverride}) => {
     );
 };
 
+const Sensor = ({metric}) => {
+    return (<li className="list-group-item d-flex align-items-center">
+        <div className="container-sm">
+            <div className="row">
+                <div className="col d-flex align-items-center">{metric.name}</div>
+                <div className="col d-flex align-items-center">{metric.value}</div>
+            </div>
+        </div>
+        <br/>
+    </li>);
+};
+
+const Sensors = ({metrics}) => {
+    const metric_lasts = [/*'c', */'f', 'h']
+
+    const metrics_list = metrics.split("\n")
+        .map((line) => line.trim())
+        .filter((line) => {
+            return !line.startsWith("#");
+        })
+        .map((line) => {
+            const parts = line.split(" ");
+            return {name: parts[0], value: Number.parseFloat(parts[1]).toFixed(2)};
+        })
+        .filter((metrics) => {
+            const last = metrics.name.substring(metrics.name.length - 1, metrics.name.length);
+            return metric_lasts.includes(last);
+        });
+
+    return (
+        <div>
+            <h2>Sensors</h2>
+            <ul className="list-group">
+                {metrics_list.map((m, i) => {
+                    return (<Sensor key={i} metric={m}></Sensor>);
+                })}
+            </ul>
+        </div>
+    );
+};
+
 const App = () => {
     const [switches, setSwitches] = useState([]);
+    const [metrics, setMetrics] = useState('');
 
     const apiUpdatePinState = (switch_state) => {
         fetch(`${data_host}/pin/output/${switch_state.pin_num}/${switch_state.pin_state}`)
@@ -124,8 +167,25 @@ const App = () => {
             });
     };
 
+    const fetchMetrics = () => {
+        fetch(`${data_host}/metrics`)
+            .then((response) => response.text())
+            .then((data) => {
+                // console.log(data);
+                setMetrics(data);
+            })
+            .catch((err) => {
+                // console.log(err.message);
+                noServerAlert(err);
+            });
+    };
+
     useEffect(() => {
         fetchSwitchesState();
+    }, []);
+
+    useEffect(() => {
+        fetchMetrics();
     }, []);
 
     const updatePinState = async (switch_state) => {
@@ -140,10 +200,11 @@ const App = () => {
 
 
     return (
-        <Container className="p-3">
+        <Container className="p-1">
             <h1>Greenhouse Agent</h1>
             <SwitchesGrid switches={switches} onUpdatePinState={updatePinState}
                           onUpdatePinOverride={updatePinOverride}></SwitchesGrid>
+            <Sensors metrics={metrics}></Sensors>
         </Container>
     )
 };
